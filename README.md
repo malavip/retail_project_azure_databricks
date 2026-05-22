@@ -5,83 +5,11 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 
 ## Architecture
 
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                           DATA SOURCES                                       │
-│                                                                              │
-│  ┌─────────────┐   ┌──────────────┐   ┌─────────────┐   ┌──────────────┐     │
-│  │ Azure SQL   │   │ FastAPI POS  │   │ CSV Files   │   │ Azure SQL    │     │
-│  │ (Products)  │   │ REST API     │   │ (Inventory) │   │ (Customers)  │     │
-│  └──────┬──────┘   └──────┬───────┘   └──────┬──────┘   └──────┬───────┘     │
-│         │                 │                  │                 │             │
-└─────────┼─────────────────┼──────────────────┼─────────────────┼─────────────┘
-          │                 │                  │                 │
-          ▼                 ▼                  ▼                 ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                    AZURE DATA FACTORY (Orchestration)                        │
-│                                                                              │
-│  pl_products_ingest    pl_transactions_ingest   pl_inventory_load            │
-│  (SQL → Parquet)       (REST → JSON)            (Event → CSV)                │
-│  Manual/Daily          Tumbling 5min            On file arrival              │
-│                        + Pagination                                          │
-│                        + Bearer Auth                                         │
-│  pl_customers_ingest                                                         │
-│  (SQL → Parquet)                                                             │
-│  Manual/6-hourly                                                             │
-└──────────────────────────────────────────┬───────────────────────────────────┘
-                                           │
-                                           ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                         ADLS GEN2 (Data Lake)                                │
-│                                                                              │
-│   bronze container         transactions container                            │
-│   ├── products.parquet     └── raw/                                          │
-│   ├── customers.parquet        └── year=YYYY/month=MM/day=DD/hour=HH/        │
-│   ├── inventory/raw/               └── transactions_YYYYMMDD_HHMM.json       │
-│   │   └── year=YYYY/month=MM/                                                │
-│   ├── products_delta/                                                        │
-│   ├── customers_delta/                                                       │
-│   ├── inventory_delta/                                                       │
-│   └── transactions_delta/                                                    │
-│                                                                              │
-│   silver container              gold container                               │
-│   ├── dim_customers/            ├── daily_revenue_by_store/                  │
-│   ├── dim_products/             ├── top_categories_weekly/                   │
-│   ├── current_inventory/        ├── customer_lifetime_value/                 │
-│   ├── fact_transactions/        └── inventory_at_risk/                       │
-│   └── _quarantine/                                                           │
-└──────────────────────────────────────────┬───────────────────────────────────┘
-                                           │
-                                           ▼
-┌──────────────────────────────────────────────────────────────────────────────┐
-│                      DATABRICKS (Processing)                                 │
-│                                                                              │
-│  Workflow Job: retail_pipeline_full (every 30 min)                           │
-│                                                                              │
-│  ┌─────────────────────────┐                                                 │
-│  │ Bronze Auto Loader      │                                                 │
-│  │ (JSON + CSV → Delta)    │                                                 │
-│  └───────────┬─────────────┘                                                 │
-│         ┌────┼──────────┐                                                    │
-│         ▼    ▼          ▼                                                    │
-│  ┌──────────┐ ┌────────┐ ┌─────────────┐                                     │
-│  │dim_cust  │ │dim_prod│ │current_inv  │                                     │
-│  │(SCD2)    │ │(SCD2)  │ │(snapshot)   │                                     │
-│  └────┬─────┘ └───┬────┘ └──────┬──────┘                                     │
-│       └─────┬─────┘             │                                            │
-│             ▼                   │                                            │
-│  ┌──────────────────────┐       │                                            │
-│  │fact_transactions     │       │                                            │
-│  │(enriched + deduped)  │       │                                            │
-│  └──────────┬───────────┘       │                                            │
-│             └─────────┬─────────┘                                            │
-│                       ▼                                                      │
-│  ┌──────────────────────────────┐                                            │
-│  │ Gold Aggregates              │                                            │
-│  │ (revenue, CLV, inventory)    │                                            │
-│  └──────────────────────────────┘                                            │
-│                                                                              │
-│  SQL Warehouse → Analysts / Power BI                                         │
-└──────────────────────────────────────────────────────────────────────────────┘
+
+<img width="503" height="835" alt="image" src="https://github.com/user-attachments/assets/cb3410db-0b0c-4b78-aaae-9e954f27cf4f" />
+
+<img width="516" height="597" alt="image" src="https://github.com/user-attachments/assets/a493f48e-6894-4d4d-9deb-2bb6d40eee7a" />
+
 
 ## Technologies Used
 
