@@ -8,12 +8,12 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────┐
-│                           DATA SOURCES                                      │
+│                           DATA SOURCES                                       │
 │                                                                              │
-│  ┌─────────────┐   ┌──────────────┐   ┌─────────────┐   ┌──────────────┐   │
-│  │ Azure SQL   │   │ FastAPI POS  │   │ CSV Files   │   │ Azure SQL    │   │
-│  │ (Products)  │   │ REST API     │   │ (Inventory) │   │ (Customers)  │   │
-│  └──────┬──────┘   └──────┬───────┘   └──────┬──────┘   └──────┬───────┘   │
+│  ┌─────────────┐   ┌──────────────┐   ┌─────────────┐   ┌──────────────┐     │
+│  │ Azure SQL   │   │ FastAPI POS  │   │ CSV Files   │   │ Azure SQL    │     │
+│  │ (Products)  │   │ REST API     │   │ (Inventory) │   │ (Customers)  │     │
+│  └──────┬──────┘   └──────┬───────┘   └──────┬──────┘   └──────┬───────┘     │
 │         │                 │                   │                  │           │
 └─────────┼─────────────────┼───────────────────┼──────────────────┼───────────┘
           │                 │                   │                  │
@@ -23,7 +23,7 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 │                                                                              │
 │  pl_products_ingest    pl_transactions_ingest   pl_inventory_load            │
 │  (SQL → Parquet)       (REST → JSON)            (Event → CSV)                │
-│  Manual/Daily          Tumbling 5min            On file arrival               │
+│  Manual/Daily          Tumbling 5min            On file arrival              │
 │                        + Pagination                                          │
 │                        + Bearer Auth                                         │
 │  pl_customers_ingest                                                         │
@@ -37,8 +37,8 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 │                                                                              │
 │   bronze container         transactions container                            │
 │   ├── products.parquet     └── raw/                                          │
-│   ├── customers.parquet        └── year=YYYY/month=MM/day=DD/hour=HH/       │
-│   ├── inventory/raw/               └── transactions_YYYYMMDD_HHMM.json      │
+│   ├── customers.parquet        └── year=YYYY/month=MM/day=DD/hour=HH/        │
+│   ├── inventory/raw/               └── transactions_YYYYMMDD_HHMM.json       │
 │   │   └── year=YYYY/month=MM/                                                │
 │   ├── products_delta/                                                        │
 │   ├── customers_delta/                                                       │
@@ -48,8 +48,8 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 │   silver container              gold container                               │
 │   ├── dim_customers/            ├── daily_revenue_by_store/                  │
 │   ├── dim_products/             ├── top_categories_weekly/                   │
-│   ├── current_inventory/        ├── customer_lifetime_value/                │
-│   ├── fact_transactions/        └── inventory_at_risk/                      │
+│   ├── current_inventory/        ├── customer_lifetime_value/                 │
+│   ├── fact_transactions/        └── inventory_at_risk/                       │
 │   └── _quarantine/                                                           │
 └──────────────────────────────────────────┬───────────────────────────────────┘
                                            │
@@ -60,37 +60,35 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 │  Workflow Jobs (3 jobs, cadence-optimized):                                  │
 │                                                                              │
 │  Job 1: retail_master_products (daily 2:30 AM)                               │
-│  Job 2: retail_master_customers (every 6 hrs, 30-min offset)                │
-│  Job 3: retail_pipeline_transactions (every 30 min)                         │
+│  Job 2: retail_master_customers (every 6 hrs, 30-min offset)                 │
+│  Job 3: retail_pipeline_transactions (every 30 min)                          │
 │                                                                              │
-│  ┌─────────────────────────┐                                                │
-│  │ Bronze Auto Loader      │                                                │
-│  │ (JSON + CSV → Delta)    │                                                │
-│  └───────────┬─────────────┘                                                │
-│         ┌────┼──────────┐                                                   │
-│         ▼    ▼          ▼                                                   │
-│  ┌──────────┐ ┌────────┐ ┌─────────────┐                                   │
-│  │dim_cust  │ │dim_prod│ │current_inv  │                                   │
-│  │(SCD2)    │ │(SCD2)  │ │(snapshot)   │                                   │
-│  └────┬─────┘ └───┬────┘ └──────┬──────┘                                   │
-│       └─────┬─────┘             │                                           │
-│             ▼                   │                                           │
-│  ┌──────────────────────┐       │                                           │
-│  │fact_transactions     │       │                                           │
-│  │(enriched + deduped)  │       │                                           │
-│  └──────────┬───────────┘       │                                           │
-│             └─────────┬─────────┘                                           │
-│                       ▼                                                     │
-│  ┌──────────────────────────────┐                                           │
-│  │ Gold Aggregates              │                                           │
-│  │ (revenue, CLV, inventory)    │                                           │
-│  └──────────────────────────────┘                                           │
+│  ┌─────────────────────────┐                                                 │
+│  │ Bronze Auto Loader      │                                                 │
+│  │ (JSON + CSV → Delta)    │                                                 │
+│  └───────────┬─────────────┘                                                 │
+│         ┌────┼──────────┐                                                    │
+│         ▼    ▼          ▼                                                    │
+│  ┌──────────┐ ┌────────┐ ┌─────────────┐                                     │
+│  │dim_cust  │ │dim_prod│ │current_inv  │                                     │
+│  │(SCD2)    │ │(SCD2)  │ │(snapshot)   │                                     │
+│  └────┬─────┘ └───┬────┘ └──────┬──────┘                                     │
+│       └─────┬─────┘             │                                            │
+│             ▼                   │                                            │
+│  ┌──────────────────────┐       │                                            │
+│  │fact_transactions     │       │                                            │
+│  │(enriched + deduped)  │       │                                            │
+│  └──────────┬───────────┘       │                                            │
+│             └─────────┬─────────┘                                            │
+│                       ▼                                                      │
+│  ┌──────────────────────────────┐                                            │
+│  │ Gold Aggregates              │                                            │
+│  │ (revenue, CLV, inventory)    │                                            │
+│  └──────────────────────────────┘                                            │
 │                                                                              │
-│  SQL Warehouse → Analysts / Power BI                                        │
+│  SQL Warehouse → Analysts / Power BI                                         │
 └──────────────────────────────────────────────────────────────────────────────┘
-```
 
----
 
 ## Technologies Used
 
@@ -105,29 +103,27 @@ An end-to-end data engineering project demonstrating a production-grade retail a
 | Python / PySpark | Data transformation and processing logic |
 | FastAPI | Mock REST API serving synthetic transaction data |
 
----
 
 ## Data Sources and Ingestion Patterns
 
 ### 1. SQL CDC — Products and Customers
 
-**Pattern:** Azure SQL → ADF Copy Activity → ADLS Parquet → Databricks → Bronze Delta
+Azure SQL → ADF Copy Activity → ADLS Parquet → Databricks → Bronze Delta
 
 Products change rarely (price updates, new products). Customers change slowly (address changes, loyalty tier upgrades). ADF copies from SQL using a Copy Activity. In production, this would use watermark-based incremental loading on `modified_date`.
 
 ### 2. REST API with Tumbling Windows — Transactions
 
-**Pattern:** FastAPI POS API → ADF REST Source + Pagination → ADLS JSON → Auto Loader → Bronze Delta
+ FastAPI POS API → ADF REST Source + Pagination → ADLS JSON → Auto Loader → Bronze Delta
 
 A custom-built FastAPI service simulates a Point-of-Sale system, serving 5,000 synthetic transactions with bearer token authentication, time-window filtering, and paginated responses with `next_page_url`. ADF's tumbling window trigger calls the API every 5 minutes, and the AbsoluteUrl pagination rule follows `$.pagination.next_page_url` until all pages are consumed.
 
 ### 3. File-Based Event-Driven — Inventory
 
-**Pattern:** CSV file upload → ADLS → ADF Storage Event Trigger → Auto Loader → Bronze Delta
+CSV file upload → ADLS → ADF Storage Event Trigger → Auto Loader → Bronze Delta
 
 Inventory snapshots arrive as CSV files uploaded to ADLS. A storage event trigger detects the new file and fires the pipeline. Auto Loader with Hive-style partitioning processes files incrementally using checkpoints.
 
----
 
 ## Medallion Architecture
 
@@ -136,7 +132,6 @@ Inventory snapshots arrive as CSV files uploaded to ADLS. A storage event trigge
 Raw data lands with minimal transformation. Dates stored as strings for resilience to source format drift. Every row includes lineage columns: `ingestion_ts`, `source_system`, `source_file`.
 
 | Table | Source | Rows | Key Feature |
-|---|---|---|---|
 | products_delta | Azure SQL | 50 | Parquet intermediate |
 | customers_delta | Azure SQL | 500 | Parquet intermediate |
 | inventory_delta | CSV files | 250+ | Hive-style partitioning |
@@ -145,7 +140,6 @@ Raw data lands with minimal transformation. Dates stored as strings for resilien
 ### Silver Layer — Cleaned, Joined, Business-Ready
 
 | Table | Pattern | Key Features |
-|---|---|---|
 | dim_customers | SCD Type 2 | SHA-256 hash surrogate key, tracks 7 attributes, effective_from/effective_to/is_current |
 | dim_products | SCD Type 2 | SHA-256 hash surrogate key, tracks name/category/price/cost |
 | current_inventory | Latest Snapshot | Window function (ROW_NUMBER) for most recent per store-SKU |
@@ -160,50 +154,45 @@ Raw data lands with minimal transformation. Dates stored as strings for resilien
 ### Gold Layer — Business Aggregates
 
 | Table | Business Question |
-|---|---|
 | daily_revenue_by_store | Revenue, transaction count, margin per store per day |
 | top_categories_weekly | Category performance ranked by weekly revenue |
 | customer_lifetime_value | Total spend, transaction frequency, margin per customer |
 | inventory_at_risk | Stock status (CRITICAL/LOW/HEALTHY) per store-SKU |
 
----
 
 ## SCD Type 2 Implementation
 
 ### Hash-Based Surrogate Keys
 
-```python
 customer_sk = SHA-256(customer_id || effective_from || row_hash)
-```
+
 
 Deterministic, idempotent (reprocessing produces identical keys), distributed-safe (no coordination between Spark executors). The `row_hash` component ensures uniqueness even for same-day attribute changes while maintaining reproducibility.
 
 ### Change Detection
 
-```python
+
 row_hash = hash(concat_ws("||", first_name, last_name, email, phone, city, state, loyalty_tier))
-```
 
 If `row_hash` differs between incoming Bronze and current Silver: close old row, insert new version with fresh surrogate key.
 
 ### Point-in-Time Fact Table Joins
 
-```python
+
 (transactions.customer_id == dim_customers.customer_id) &
 (transactions.transaction_date >= dim_customers.effective_from) &
 ((transactions.transaction_date < dim_customers.effective_to) | dim_customers.effective_to.isNull())
-```
+
 
 Ensures each transaction is enriched with the customer's attributes as they were at the time of purchase, not their current state.
 
----
+
 
 ## Orchestration
 
 ### ADF (External Data Ingestion)
 
 | Pipeline | Trigger | Timeout | Retry |
-|---|---|---|---|
 | pl_products_ingest | Manual / Daily | Default | None |
 | pl_customers_ingest | Manual / 6-hourly | Default | None |
 | pl_transactions_ingest | Tumbling window (5 min) | 5 min | 2x, 30s interval |
@@ -217,35 +206,34 @@ Three Workflow jobs, each scheduled by data change frequency to avoid wasteful c
 
 **Job 1: `retail_master_products` (Daily at 2:30 AM)**
 
-```
+
 bronze_products_load → silver_dim_products_scd2
-```
+
 
 Products change rarely (price updates, new SKUs). Scheduled 30 minutes after the ADF products refresh (2:00 AM) to ensure fresh Parquet is available. Running SCD2 every 30 minutes would waste compute on guaranteed no-ops.
 
 **Job 2: `retail_master_customers` (Every 6 hours, offset by 30 min)**
 
-```
+
 bronze_customers_load → silver_dim_customers_scd2
-```
+
 
 Customer attributes change slowly (address moves, loyalty tier upgrades). Runs at 12:30 AM, 6:30 AM, 12:30 PM, 6:30 PM — 30 minutes after ADF refreshes customer Parquet from SQL. A 6-hourly cadence balances freshness with efficiency.
 
 **Job 3: `retail_pipeline_transactions` (Every 30 minutes)**
 
-```
+
 bronze_transactions_autoloader
     ├── silver_current_inventory (parallel)
     └── silver_fact_transactions (parallel)
               │
         gold_aggregates
-```
 
 Transactions are continuously generated. The fact table reads existing Silver dimensions (maintained by Jobs 1 and 2) without rebuilding them — it only needs fresh dimensions, not freshly-rebuilt dimensions.
 
 **Typical daily timeline:**
 
-```
+
  2:00 AM  — ADF refreshes products Parquet from SQL
  2:30 AM  — Job 1: products Bronze + SCD2 refresh
 
@@ -262,7 +250,7 @@ Transactions are continuously generated. The fact table reads existing Silver di
 
   6:00 PM — ADF refreshes customers Parquet from SQL
   6:30 PM — Job 2: customers refresh
-```
+
 
 Each ADF trigger runs 30 minutes before its corresponding Databricks job, providing a safe buffer for retries and connection overhead.
 
@@ -275,7 +263,6 @@ At enterprise scale (100M+ rows), the approach would shift to incremental proces
 **Processing model by layer:**
 
 | Layer | Processing Mode | Reason |
-|---|---|---|
 | Bronze Auto Loader | Incremental (checkpoint) | Only new files processed, never reprocesses |
 | Silver Fact Table | Full overwrite | Ensures dimension updates propagate, NULLs self-heal |
 | Gold Aggregates | Full overwrite | Derived from Silver, cheap to rebuild |
@@ -289,7 +276,7 @@ ADF and Databricks run independently, communicating through the data lake. Benef
 - Each layer refreshes at its own cadence
 - Master data jobs (daily/6-hourly) separated from transactional jobs (30-min) to minimize compute waste
 
----
+
 
 ## Mock POS REST API
 
@@ -307,13 +294,13 @@ Custom FastAPI service deployed to Azure App Service (F1 free tier).
 - `GET /api/v1/transactions` — Paginated transactions (Bearer auth required)
 - `GET /docs` — Auto-generated Swagger UI
 
----
+
 
 ## Project Structure
 
 ### Databricks Workspace
 
-```
+
 RetailPulse/
 ├── bronze/
 │   ├── bronze_products_load
@@ -332,25 +319,22 @@ RetailPulse/
 └── utilities/
     ├── clean_slate_reset
     └── data_quality_checks
-```
+
 
 ### Azure Resources
 
-```
 rg-retailproject1/
 ├── retailprojec1data          (ADLS Gen2 — bronze, transactions, silver, gold containers)
 ├── sql-retailproject1         (Azure SQL Server + Database)
 ├── retailproject1             (Databricks workspace)
 ├── adf-retailproject1         (Azure Data Factory)
 └── retailpulse-pos-api-9472   (App Service — FastAPI)
-```
 
----
+
 
 ## Key Design Decisions
 
 | Decision | Rationale |
-|---|---|
 | Delta format for all layers | ACID transactions, time travel, schema evolution |
 | String-first dates in Bronze | Resilient to source format drift; parsed in Silver with quarantine |
 | Hash-based surrogate keys | Idempotent, distributed-safe, no central coordinator needed |
@@ -364,7 +348,6 @@ rg-retailproject1/
 | Separate jobs by cadence | Products daily, customers 6-hourly, transactions 30-min — avoids wasteful no-op runs |
 | ADF runs 30 min before Databricks | Ensures fresh Parquet is available when Bronze notebooks execute |
 
----
 
 ## Production Enhancements
 
@@ -379,7 +362,7 @@ Documented improvements for scaling beyond portfolio scope:
 - **Unity Catalog integration:** Register all tables as managed catalog tables for centralized governance, lineage tracking, and fine-grained access control.
 - **Declarative data quality:** Add Great Expectations or DLT Expectations for automated quality checks with alerting on threshold breaches.
 
----
+
 
 ## How to Run
 
@@ -395,7 +378,6 @@ Documented improvements for scaling beyond portfolio scope:
 ### ADF Triggers
 
 | Trigger | Type | Frequency | Pipeline |
-|---|---|---|---|
 | `trg_pos_transactions_5min` | Tumbling window | Every 5 min | pl_transactions_ingest |
 | Storage event trigger | Storage event | On file arrival | pl_inventory_load |
 | `trg_products_daily` | Schedule | Daily 2:00 AM | pl_products_ingest |
@@ -406,7 +388,6 @@ ADF triggers run 30 minutes before corresponding Databricks jobs to ensure fresh
 ### Databricks Jobs
 
 | Job | Schedule | Tasks | What It Does |
-|---|---|---|---|
 | `retail_master_products` | Daily 2:30 AM | 2 | Bronze + SCD2 for products |
 | `retail_master_customers` | 12:30 AM, 6:30 AM, 12:30 PM, 6:30 PM | 2 | Bronze + SCD2 for customers |
 | `retail_pipeline_transactions` | Every 30 min | 4 | Bronze Auto Loader → fact table → Gold |
@@ -420,15 +401,9 @@ ADF triggers run 30 minutes before corresponding Databricks jobs to ensure fresh
 5. Databricks `retail_pipeline_transactions` runs every 30 min (fact table + Gold)
 6. Gold tables available via SQL Warehouse for analysts / Power BI
 
-### Full Reset
-
-Run `utilities/clean_slate_reset` notebook to delete Silver and Gold data. Run all three Databricks jobs in sequence to rebuild everything from Bronze.
-
----
 
 ## Sample Queries
 
-```sql
 -- Revenue by store
 SELECT store_location, SUM(total_revenue) as revenue
 FROM gold.daily_revenue_by_store
@@ -443,8 +418,5 @@ ORDER BY total_spent DESC LIMIT 10;
 SELECT store_id, product_name, quantity_on_hand, stock_status
 FROM gold.inventory_at_risk
 WHERE stock_status IN ('CRITICAL', 'OUT_OF_STOCK');
-```
 
----
-
-**Built by Malavika** — End-to-end data engineering portfolio project demonstrating Azure Databricks, ADF, Delta Lake, REST API integration, SCD2 dimensions with hash-based surrogate keys, medallion architecture, and cadence-optimized orchestration across 4 ADF pipelines and 3 Databricks Workflow jobs.
+End-to-end data engineering project demonstrating Azure Databricks, ADF, Delta Lake, REST API integration, SCD2 dimensions with hash-based surrogate keys, medallion architecture, and cadence-optimized orchestration across 4 ADF pipelines and 3 Databricks Workflow jobs.
