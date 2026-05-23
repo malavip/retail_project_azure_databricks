@@ -1,4 +1,4 @@
-# RetailPulse — Real-Time Retail Data Engineering Pipeline
+# Retail— Real-Time Retail Data Engineering Pipeline
 
 An end-to-end data engineering project demonstrating a production-grade retail analytics pipeline on Azure. Ingests data from 4 different sources using 3 distinct ingestion patterns, processes through a medallion architecture (Bronze → Silver → Gold), and serves business-ready KPIs for analytics.
 
