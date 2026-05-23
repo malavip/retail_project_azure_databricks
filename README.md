@@ -401,6 +401,16 @@ ADF triggers run 30 minutes before corresponding Databricks jobs to ensure fresh
 5. Databricks `retail_pipeline_transactions` runs every 30 min (fact table + Gold)
 6. Gold tables available via SQL Warehouse for analysts / Power BI
 
+###Screenshots
+<img width="1052" height="700" alt="image" src="https://github.com/user-attachments/assets/6d8b922b-1a3c-464f-a481-474e5a9ad768" />
+<img width="1011" height="682" alt="image" src="https://github.com/user-attachments/assets/76ed4006-f4c8-4c70-a046-6ad3a0f49d8f" />
+<img width="1032" height="771" alt="image" src="https://github.com/user-attachments/assets/2be501fd-1bf8-46f9-92bd-5b29fbff1e1d" />
+<img width="1771" height="908" alt="image" src="https://github.com/user-attachments/assets/5a8d30a5-a940-475d-b80a-444b88b8e44c" />
+<img width="1910" height="846" alt="image" src="https://github.com/user-attachments/assets/2ce4c970-d7b9-4d8e-a717-84dd2f25364c" />
+
+
+
+
 
 ## Sample Queries
 
